@@ -10,3 +10,7 @@ the semester, as well as to gain an understanding of matrices arithmetic.
 ## Problem Set 2
 This problem set challenged me to think a bit outside the box. Here you will find examples of histogram
 equalization, an amateur edge detection sobel filter, separable filters, and so on.
+
+## Problem Set 3 / Project 1
+This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
+to create hybrid images. 
