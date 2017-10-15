@@ -1,0 +1,263 @@
+<html>
+<head>
+<title>CS 589 Project 3</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: uppercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Yan Shi <span style="color: #DE3737"></span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>CSC 589 AU / Homework 3 / Image Filtering and Hybrid Images</h2>
+
+<div style="float: right; padding: 20px">
+<img src="images/hybrid_image_cat_dog.png" />
+<p style="font-size: 14px">Is it REALLY just a cat?</p>
+</div>
+
+<p>
+This was definitely one of the more challenging problem sets that was assigned.
+There are several things that still require tuning that I hope to return back to this
+project to complete. <a href="https://github.com">Find the Github repository of the code here.</a>
+</p>
+<h2>TODO</h2>
+<ol>
+<li>Allow for colored images. At the moment, only grayscale images work. The way to implement
+for colored images is to convolve each color channel (R, G, and B) with the kernel separately then
+stitch it all back together into one image again.</li>
+<li>Convolve using a separable gaussian filter. Right now, the program runs for quite
+	a bit of processing time. Separable filters would fix that.</li>
+<li>Include an applet of some kind on the website.</li>
+</ol>
+
+<p>The goal of the project was to create and implement my_imfilter.py which involved coding our
+own convolution2d function, a gaussian kernel function, a low pass (blur) function, and a high pass (sharpen) function.
+We would then use these functions to create a hybrid image, an image that contains the low-pass frequencies
+of one image and the high-pass frequences of another image. This image is an optical illusion: we are able
+to see the high pass image from up close but unable to see the low pass image until we are far away enough in distance.
+<br/>
+The most difficult part of the setup was the convolution function and the gaussian kernel function. The other
+two functions relied on convolution and the kernel, so those were not challenges. </p>
+
+<div style="clear:both">
+<h2>Functions and Algorithms</h2>
+<p>The functions were given to us and algorithms were based off of the readings in Richard Szeliski's book and in the
+research article <a href="http://cvcl.mit.edu/publications/OlivaTorralb_Hybrid_Siggraph06.pdf">Hybrid Images (Olivia, Torralba, and Schyns)</a>.
+We focus primarily on the standard deeviation of the gaussian filter, &sigma; and alpha for the high-pass function in order to determine
+the best way render the hybridized image. The hybrid image is the <strong>sum</strong> of the high-pass frequencies of one image and the <strong>low-pass</strong>
+frequencies of another image. There was a <strong>cut-off frequency</strong> that we had to keep in mind in order to properly
+hybridize the two images together. <strong>NOTE:</strong> Because of the nature of convolution and the current implementation that I have, the
+runtime for the program itself can reach up to a minute given the size of the images. So please be patient if you are running the program at all.</p>
+<h2>Convolution and Kernels</h2>
+<p>I reviewed convolution and attempted padding. In this case, we added constant padding while we checked through the rows and
+columns. We had a region of interest (the size of the kernel + where the kernel on the image's matrices). These regions of interest
+would then calculate the sum of the region and place that number where the row and column location was in the output. The kernels were
+calculated based on a given sigma; the size of the kernels were determined by primarily the row number of the image itself. We then utilized
+this following piece of code to emulate the Gaussian equation:</p>
+<pre><code>np.exp(-1.0 * ((X - center_x)**2. + (Y-center_y)**2.) / (2. * sigma**2.))</pre></code>
+
+<h2>High Pass and Low Pass</h2>
+<p><code>high_pass()</code> and <code>low_pass()</code> required one argument each: the image. The functions relied on the <code>convolve2d</code>
+and <code>gaussian_kernel_2d</code> in order for the two to function. It was interesting to try and make it so that the sharpening and blurring
+could be customizable. Sharpening is controlled by alpha, which is stated in the code, and blurring is stated as sigma. </p>
+
+<h2>Results</h2>
+<h3>Cat &amp; Dog</h3>
+<table>
+<tr>
+<td>
+<img src="images/low_pass_dog.png" width="24%"/>
+<img src="images/high_pass_cat.png"  width="24%"/>
+<img src="images/hybrid_image_cat_dog.png" width="24%"/>
+<img src="images/dogcat.gif" width="24%">
+</td>
+</tr>
+</table>
+<p>The high-pass image here was the cat and the low pass iamge was the dog.
+Some notable things: alpha=10 for the <code>high_pass</code> filter and sigma=5 for the <code>low_pass</code> filter. I kept the blurring for
+the high pass to 1. Interestingly enough, I had tried this the other way around, i.e. the high-pass image was now the dog and the low-pass image
+was now the cat.</p>
+<table>
+	<tr>
+		<td>
+				<img src="images/low_pass_cat.png" width="24%"/>
+				<img src="images/high_pass_dog.png"  width="24%"/>
+				<img src="images/hybrid_image_doggo_cat.png" width="24%"/>
+			</td>
+		</tr>
+</table>
+<p>... This actually <i>doesn't</i> work, no matter how much you adjust the sigma and alpha. I kept them the same here and
+was unable to achieve a satisfactory result. </p>
+<h3>Bird &amp; Plane</h3>
+<table>
+	<tr>
+		<td>
+				<img src="images/low_pass_plane.png" width="24%"/>
+				<img src="images/high_pass_bird.png"  width="24%"/>
+				<img src="images/hybrid_image_bird_or_plane.png" width="24%"/>
+				<img src="images/planebird.gif" width="24%"/>
+			</td>
+		</tr>
+</table>
+<p>This didn't work as nicely as the cat and dog one, but the idea is similar here. The high pass image was the bird and the
+	low pass image was the plane. The sigma was kept at 5 and the alpha was kept at a 10. The conditions were kept the same from
+	the last hybridization.</p>
+
+<h3>Marilyn &amp; Einstein</h3>
+<table>
+	<tr>
+		<td>
+				<img src="images/low_pass_marilyn.png" width="24%"/>
+				<img src="images/high_pass_einstein.png"  width="24%"/>
+				<img src="images/hybrid_image_marilyn_einstein.png" width="24%"/>
+				<img src="images/einsteimarilyn.gif" width="24%"/>
+			</td>
+		</tr>
+</table>
+<p>This one was more of a success than others! The high pass image was Albert Einstein and the low-pass image is Marilyn Monroe.
+The alpha for the high-pass image was 5 and the low-pass image's sigma was set to 5 as well. The sigma in the blurring process for
+the sharpening was set to 1. It's interesting as these two required the same alpha and sigma, versus the other two that required at least
+half of each other.</p>
+<div style="clear:both">
+	<h2> Final Thoughts</h2>
+	<p>This was, overall, a successful and fun project. However, with more time, I can definitely finess the project
+and meet the other criteria marks. Unfortunately, with current time constraints, I was unable to get to allow for color
+and allowing for an arbitrary kernel. Nonetheless, the results and experimentation that I discovered along the way gives me
+insight for a better iteration of this project in the near future.</p>
+<p>Overall, it appeared to be that the frequency cut off for most things was from about 5-10. Anything higher would cause the
+images to look out of sync and unnatural. There could not be <strong>too<strong> much sharpening or blurring or else one would
+dominate the other. The striking of balance was necessary and that meant fiddling around with the sigma and the alpha to determine
+what worked best. If I had to do this again, I think I would rather work in the Fourier space than the spatial space, as the spatial
+space doesn't allow for that dramatic of a change in terms of sharpening—as that was my biggest issue.</p>
+
+<p>Thank you for reading!</p>
+</div>
+</body>
+</html>
