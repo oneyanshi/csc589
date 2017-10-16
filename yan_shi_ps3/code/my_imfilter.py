@@ -27,17 +27,6 @@ def cross_correlate_2d(image, kernel):
     '''
     Like convolution but doesn't involve flipping the kernel.
     '''
-
-    def mathhelperfunc(window, kernel):
-        '''
-        To help with mathematical calculations without interference from other for loops :'('
-        '''
-        total = []
-        for i in range(0, window.shape[0]):
-            for j in range(0, window.shape[1]):
-                total.append(window[i, j] * kernel[i, j])
-        return sum(total)
-
     # normalize the image
     norm_image = (1.0/250)*(image)
 
@@ -52,16 +41,27 @@ def cross_correlate_2d(image, kernel):
     vertical_pad = (kernel_height-1)/2
     horizontal_pad = (kernel_width-1)/2
 
-    # now let's pad
+    # now let's pad the image
     padded_image = np.pad(image, pad_width=((vertical_pad, vertical_pad), (horizontal_pad, horizontal_pad)), mode='reflect')
 
+    # loop through the image
     for i in range(0, image_height):
         for j in range(0, image_width):
-            look_center = padded_image[i+vertical_pad, j+horizontal_pad]
+            # the region of interest, the window for the kernel + image matrix
             window = padded_image[i:kernel_height+i, j:kernel_width+j]
-            output[i, j] = mathhelperfunc(window, kernel)
 
-    print "We're here in CORRELATE"
+            # for the total calculation
+            total = []
+
+            # loop through the smaller window
+            for x in range(0, window.shape[0]):
+                for y in range(0, window.shape[1]):
+                    total.append(window[x, y] * kernel[x, y])
+
+            # output location = the sum of the total of that window
+            output[i, j] = sum(total)
+
+    print("%s") % "We're here in CORRELATE"
     return output
 
 def convolve2d(image, kernel, color):
@@ -102,7 +102,7 @@ def gaussian_blur_kernel_2d(kernel_size, sigma):
 # low pass: blurring
 def low_pass(image):
     '''Removes the fine details from an image (blurs) ; will use convolve2d'''
-    print "We're here in LOW"
+    print("%s") % "We're here in LOW"
     kernel = gaussian_blur_kernel_2d(11, 5)
     low_pass_image = convolve2d(image, kernel, color=1)
     return low_pass_image
@@ -110,7 +110,7 @@ def low_pass(image):
 # high pass: sharpening
 def high_pass(image):
     '''Removes the coarse details from an image (sharpens); will use convolve2d to blur the image'''
-    print "We're here in HIGH"
+    print("%s") % "We're here in HIGH"
     # make a copy of the image to keep original + get a copy for blurring
     original = np.copy(image)
     copy = np.copy(image)
@@ -128,11 +128,13 @@ high_passed = high_pass(image2)
 hybrid = low_passed + high_passed
 
 # saving
-misc.imsave("../images/output/low_pass_doggo_v2_color.png", low_passed)
-misc.imsave("../images/output/high_pass_catto_v2_color.png", high_passed)
-misc.imsave("../images/output/hybrid_image_catto_doggo_v2_color.png", hybrid)
+misc.imsave("../images/output/testlow.png", low_passed)
+misc.imsave("../images/output/testhigh.png", high_passed)
+misc.imsave("../images/output/testhybrid.png", hybrid)
 
-# checks for grayscale images 
+print("%s" % "Done")
+
+# checks for grayscale images
 # plt.subplot(1, 3, 1)
 # plt.imshow(low_passed, cmap='gray')
 # plt.title('Low pass')
