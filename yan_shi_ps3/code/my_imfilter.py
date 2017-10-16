@@ -24,10 +24,9 @@ import cv2
 image1 = np.float64(misc.imread('../images/marilyn.bmp', flatten=1))
 image2 = np.float64(misc.imread('../images/einstein.bmp', flatten=1))
 
-def convolve2d(image, kernel):
+def cross_correlate_2d(image, kernel):
     '''
-    Inputs: image, kernel
-    Outputs: an image that has gone through convolution
+    Like convolution but doesn't involve flipping the kernel.
     '''
     # normalize the image
     norm_image = (1.0/250)*(image)
@@ -37,9 +36,6 @@ def convolve2d(image, kernel):
 
     # save image and kernel shapes, respectively
     (image_height, image_width) = image.shape[:2]
-
-    # flip the kernel
-    kernel = np.flipud(np.fliplr(kernel))
 
     # some nice padding
     pad = (norm_image.shape[1] - 1) / 2
@@ -59,6 +55,16 @@ def convolve2d(image, kernel):
             output[y - pad, x - pad] = total
 
     return output
+
+
+def convolve2d(image, kernel):
+    '''
+    We use cross_correlate_2d() here and use the flipped kernel to convolve. 
+    '''
+    # flip the kernel
+    flip_kernel = np.flipud(np.fliplr(kernel))
+
+    return cross_correlate_2d(image, flip_kernel)
 
 def gaussian_blur_kernel_2d(kernel_size, sigma):
     '''Produces a kernal of a given height and width which can then be passed to convolve_2d
