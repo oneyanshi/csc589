@@ -15,19 +15,29 @@ import scipy.stats as st
 from scipy.ndimage import filters
 import cv2
 
-'''
-    image1 will be our low pass image
-    image2 will be our high pass image
-'''
 
 # read in the images
-image1 = np.float64(misc.imread('../images/marilyn.bmp', flatten=1))
-image2 = np.float64(misc.imread('../images/einstein.bmp', flatten=1))
+# image1 will be our low pass image
+image1 = np.float64(misc.imread('../images/dog.bmp', flatten=0, mode='RGB'))
+
+# image2 will be our high pass image
+image2 = np.float64(misc.imread('../images/cat.bmp', flatten=0, mode='RGB'))
 
 def cross_correlate_2d(image, kernel):
     '''
     Like convolution but doesn't involve flipping the kernel.
     '''
+
+    def mathhelperfunc(window, kernel):
+        '''
+        To help with mathematical calculations without interference from other for loops :'('
+        '''
+        total = []
+        for i in range(0, window.shape[0]):
+            for j in range(0, window.shape[1]):
+                total.append(window[i, j] * kernel[i, j])
+        return sum(total)
+
     # normalize the image
     norm_image = (1.0/250)*(image)
 
@@ -36,84 +46,100 @@ def cross_correlate_2d(image, kernel):
 
     # save image and kernel shapes, respectively
     (image_height, image_width) = image.shape[:2]
+    (kernel_height, kernel_width) = kernel.shape[:2]
 
-    # some nice padding
-    pad = (norm_image.shape[1] - 1) / 2
+    # padding
+    vertical_pad = (kernel_height-1)/2
+    horizontal_pad = (kernel_width-1)/2
 
-    # we use cv2 here to make a border
-    norm_image =cv2.copyMakeBorder(norm_image, pad, pad, pad, pad, cv2.BORDER_CONSTANT)
+    # now let's pad
+    padded_image = np.pad(image, pad_width=((vertical_pad, vertical_pad), (horizontal_pad, horizontal_pad)), mode='reflect')
 
-    for y in np.arange(pad, image_height + pad):
-        for x in np.arange(pad, image_width + pad):
-            # we try to skip over the padded areas
-            region_of_interest = norm_image[y - pad:y + pad + 1, x - pad:x + pad + 1]
+    for i in range(0, image_height):
+        for j in range(0, image_width):
+            look_center = padded_image[i+vertical_pad, j+horizontal_pad]
+            window = padded_image[i:kernel_height+i, j:kernel_width+j]
+            output[i, j] = mathhelperfunc(window, kernel)
 
-            # element-wise multiplcation the region of interest and the kernel
-            total = (region_of_interest * kernel).sum()
-
-            # place the total of that region into the
-            output[y - pad, x - pad] = total
-
+    print "We're here in CORRELATE"
     return output
 
-
-def convolve2d(image, kernel):
+def convolve2d(image, kernel, color):
     '''
-    We use cross_correlate_2d() here and use the flipped kernel to convolve. 
+    We use cross_correlate_2d() here and use the flipped kernel to convolve.
     '''
     # flip the kernel
     flip_kernel = np.flipud(np.fliplr(kernel))
 
-    return cross_correlate_2d(image, flip_kernel)
+    if color == 1:
+        # blue
+        image[:,:,0] = cross_correlate_2d(image[:,:,0], flip_kernel)
+
+        # green
+        image[:,:,1] = cross_correlate_2d(image[:,:,1], flip_kernel)
+
+        # red
+        image[:,:,2] = cross_correlate_2d(image[:,:,2], flip_kernel)
+
+        return image
+
+    else:
+        return cross_correlate_2d(image, flip_kernel)
 
 def gaussian_blur_kernel_2d(kernel_size, sigma):
     '''Produces a kernal of a given height and width which can then be passed to convolve_2d
     from above, along with an image to produce a blurred version of the image
     '''
     if kernel_size % 2 == 1:
-        nrows = kernel_size
-        kernel_array = np.zeros((nrows, nrows))
-        center_x, center_y = ((nrows + 1.) / 2., (nrows + 1.) / 2.)
-
-        # mesh grid creation
-        x = np.linspace(0, nrows, nrows)
-        X, Y = np.meshgrid(x, x)
-
-        gmask = np.exp(-1.0 * ((X - center_x)**2. + (Y-center_y)**2.) / (2. * sigma**2.))
+        x, y = np.mgrid[-kernel_size:kernel_size+1, -kernel_size:kernel_size+1]
+        gmask = np.exp(-((x**2/float(kernel_size) + y**2/float(kernel_size))/(2 * sigma **2)))
+        gmask = gmask / gmask.sum()
         return gmask
 
     else:
         raise ValueError("Kernal size cannot be even.")
 
-#  == low pass: blurring ==
+# low pass: blurring
 def low_pass(image):
     '''Removes the fine details from an image (blurs) ; will use convolve2d'''
-    low_pass_image = convolve2d(image, gaussian_blur_kernel_2d(image.shape[1], 5))
-    #misc.imsave("../images/output/low_pass_marilyn.png", np.real(low_pass_image))
+    print "We're here in LOW"
+    kernel = gaussian_blur_kernel_2d(11, 5)
+    low_pass_image = convolve2d(image, kernel, color=1)
     return low_pass_image
 
-#  == high pass: sharpening ==
+# high pass: sharpening
 def high_pass(image):
     '''Removes the coarse details from an image (sharpens); will use convolve2d to blur the image'''
-    blurred_image = convolve2d(image, gaussian_blur_kernel_2d(image.shape[1], 1))
-    blurred_image2 = convolve2d(blurred_image, (gaussian_blur_kernel_2d(image.shape[1], 1)))
-    alpha = 5
-
-    high_pass_image = blurred_image + alpha * (blurred_image - blurred_image2)
-    #misc.imsave("../images/output/high_pass_einstein.png", np.real(high_pass_image))
+    print "We're here in HIGH"
+    # make a copy of the image to keep original + get a copy for blurring
+    original = np.copy(image)
+    copy = np.copy(image)
+    blurred_image = low_pass(copy)
+    alpha = 1
+    high_pass_image = alpha * (image - blurred_image)
     return high_pass_image
 
+
+# processing images
 low_passed = low_pass(image1)
 high_passed = high_pass(image2)
+
+# hybridize the images
 hybrid = low_passed + high_passed
-misc.imsave("../images/output/hybrid_image_marilyn_einstein.png", np.real(hybrid))
-plt.subplot(1, 3, 1)
-plt.imshow(low_passed, cmap='gray')
-plt.title('Low pass')
-plt.subplot(1, 3, 2)
-plt.imshow(high_passed, cmap='gray')
-plt.title('High pass')
-plt.subplot(1, 3, 3)
-plt.imshow(hybrid, cmap='gray')
-plt.title('Hybrid')
-plt.show()
+
+# saving
+misc.imsave("../images/output/low_pass_doggo_v2_color.png", low_passed)
+misc.imsave("../images/output/high_pass_catto_v2_color.png", high_passed)
+misc.imsave("../images/output/hybrid_image_catto_doggo_v2_color.png", hybrid)
+
+# checks for grayscale images 
+# plt.subplot(1, 3, 1)
+# plt.imshow(low_passed, cmap='gray')
+# plt.title('Low pass')
+# plt.subplot(1, 3, 2)
+# plt.imshow(high_passed, cmap='gray')
+# plt.title('High pass')
+# plt.subplot(1, 3, 3)
+# plt.imshow(hybrid, cmap='gray')
+# plt.title('Hybrid')
+# plt.show()
