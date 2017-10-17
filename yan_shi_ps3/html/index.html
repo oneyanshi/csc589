@@ -138,7 +138,7 @@ td img {
 <h2>CSC 589 AU / Homework 3 / Image Filtering and Hybrid Images</h2>
 
 <div style="float: right; padding: 20px">
-<img src="images/hybrid_image_cat_dog.png" />
+<img src="images/hybrids/hybrid_image_catto_doggo_v2_color.png" />
 <p style="font-size: 14px">Is it REALLY just a cat?</p>
 </div>
 
@@ -146,16 +146,14 @@ td img {
 This was definitely one of the more challenging problem sets that was assigned.
 There are several things that still require tuning that I hope to return back to this
 project to complete. <a href="https://github.com/oneyanshi/csc589">Find the Github repository of the code here.</a>
-Please click on <code>yan_shi_ps3</code> to find the code. 
+Please click on <code>yan_shi_ps3</code> to find the code.
 </p>
 <h2>TODO</h2>
 <ol>
-<li>Allow for colored images. At the moment, only grayscale images work. The way to implement
-for colored images is to convolve each color channel (R, G, and B) with the kernel separately then
-stitch it all back together into one image again.</li>
 <li>Convolve using a separable gaussian filter. Right now, the program runs for quite
 	a bit of processing time. Separable filters would fix that.</li>
-<li>Include an applet of some kind on the website.</li>
+<li>Include an applet of some kind on the website! This would require some JavaScrip or a way to
+render python scripts.</li>
 </ol>
 
 <p>The goal of the project was to create and implement my_imfilter.py which involved coding our
@@ -190,21 +188,52 @@ and <code>gaussian_kernel_2d</code> in order for the two to function. It was int
 could be customizable. Sharpening is controlled by alpha, which is stated in the code, and blurring is stated as sigma. </p>
 
 <h2>Results</h2>
+<p>For the first discussion of the results, I will display both the gray scale and color versions of the hybrid images.</p>
 <h3>Cat &amp; Dog</h3>
+<h4>Original</h4>
+<table>
+	<tr>
+		<td>
+			<img src="images/original/dog.bmp" width="35%"/>
+			<img src="images/original/cat.bmp" width="35%"/>
+		</td>
+	</tr>
+</table>
+<h4>Grayscale</h4>
 <table>
 <tr>
 <td>
-<img src="images/low_pass_dog.png" width="24%"/>
-<img src="images/high_pass_cat.png"  width="24%"/>
-<img src="images/hybrid_image_cat_dog.png" width="24%"/>
-<img src="images/dogcat.gif" width="24%">
+<img src="images/low/low_pass_doggo_v2.png" width="24%"/>
+<img src="images/high/high_pass_catto_v2.png"  width="24%"/>
+<img src="images/hybrids/hybrid_image_catto_doggo_v2.png" width="24%"/>
+<img src="images/gifs/catto_doggo_color.gif" width="24%">
 </td>
 </tr>
+</table>
+<h4>Color</h4>
+<table>
+	<tr>
+		<td>
+				<img src="images/low/low_pass_doggo_v2_color.png" width="24%"/>
+				<img src="images/high/high_pass_catto_v2_color.png"  width="24%"/>
+				<img src="images/hybrids/hybrid_image_catto_doggo_v2_color.png" width="24%"/>
+				<img src="images/gifs/catto_doggo_color.gif" width="24%"/>
+			</td>
+		</tr>
 </table>
 <p>The high-pass image here was the cat and the low pass iamge was the dog.
 Some notable things: alpha=10 for the <code>high_pass</code> filter and sigma=5 for the <code>low_pass</code> filter. I kept the blurring for
 the high pass to 1. Interestingly enough, I had tried this the other way around, i.e. the high-pass image was now the dog and the low-pass image
 was now the cat.</p>
+<table>
+	<tr>
+		<td>
+				<img src="images/low/low_pass_cat_v2_color.png" width="24%"/>
+				<img src="images/high/high_pass_dog_v2_color.png"  width="24%"/>
+				<img src="images/hybrids/hybrid_image_doggo_catto_v2_color.png" width="24%"/>
+			</td>
+		</tr>
+</table>
 <table>
 	<tr>
 		<td>
@@ -232,12 +261,22 @@ was unable to achieve a satisfactory result. </p>
 	the last hybridization.</p>
 
 <h3>Marilyn &amp; Einstein</h3>
+<h4>Original</h4>
 <table>
 	<tr>
 		<td>
-				<img src="images/low_pass_marilyn.png" width="24%"/>
-				<img src="images/high_pass_einstein.png"  width="24%"/>
-				<img src="images/hybrid_image_marilyn_einstein.png" width="24%"/>
+			<img src="images/original/marilyn.bmp" width="35%"/>
+			<img src="images/original/einstein.bmp" width="35%"/>
+		</td>
+	</tr>
+</table>
+<h4>Hybrid</h4>
+<table>
+	<tr>
+		<td>
+				<img src="images/low/low_pass_marilyn_v2_color.png" width="24%"/>
+				<img src="images/high/high_pass_einstein_v2_color.png"  width="24%"/>
+				<img src="images/hybrids/hybrid_einstein_marilyn_v2_color.png" width="24%"/>
 				<img src="images/einsteimarilyn.gif" width="24%"/>
 			</td>
 		</tr>
@@ -246,6 +285,40 @@ was unable to achieve a satisfactory result. </p>
 The alpha for the high-pass image was 5 and the low-pass image's sigma was set to 5 as well. The sigma in the blurring process for
 the sharpening was set to 1. It's interesting as these two required the same alpha and sigma, versus the other two that required at least
 half of each other.</p>
+
+<h3>Fish &amp; Submarine</h3>
+<h4>Original</h4>
+<table>
+	<tr>
+		<td>
+			<img src="images/original/fish.bmp" width="35%"/>
+			<img src="images/original/submarine.bmp" width="35%"/>
+		</td>
+	</tr>
+</table>
+<table>
+<img src="images/low/low_pass_marilyn_v2_color.png" width="24%"/>
+<img src="images/high/high_pass_einstein_v2_color.png"  width="24%"/>
+<img src="images/hybrids/hybrid_einstein_marilyn_v2_color.png" width="24%"/>
+<img src="images/einsteimarilyn.gif" width="24%"/>
+</table>
+
+<h3>Motorcycle &amp; Bicycle</h3>
+<h4>Original</h4>
+<table>
+	<tr>
+		<td>
+			<img src="images/original/motorcycle.bmp" width="35%"/>
+			<img src="images/original/bicycle.bmp" width="35%"/>
+		</td>
+	</tr>
+</table>
+<table>
+
+</table>
+
+<h3>For Fun</h3>
+
 <div style="clear:both">
 	<h2> Final Thoughts</h2>
 	<p>This was, overall, a successful and fun project. However, with more time, I can definitely finess the project
@@ -253,7 +326,7 @@ and meet the other criteria marks. Unfortunately, with current time constraints,
 and allowing for an arbitrary kernel. Nonetheless, the results and experimentation that I discovered along the way gives me
 insight for a better iteration of this project in the near future.</p>
 <p>Overall, it appeared to be that the frequency cut off for most things was from about 5-10. Anything higher would cause the
-images to look out of sync and unnatural. There could not be <strong>too<strong> much sharpening or blurring or else one would
+images to look out of sync and unnatural. There could not be <strong>too</strong> much sharpening or blurring or else one would
 dominate the other. The striking of balance was necessary and that meant fiddling around with the sigma and the alpha to determine
 what worked best. If I had to do this again, I think I would rather work in the Fourier space than the spatial space, as the spatial
 space doesn't allow for that dramatic of a change in terms of sharpening—as that was my biggest issue.</p>

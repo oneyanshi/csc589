@@ -15,14 +15,6 @@ import scipy.stats as st
 from scipy.ndimage import filters
 import cv2
 
-
-# read in the images
-# image1 will be our low pass image
-image1 = np.float64(misc.imread('../images/dog.bmp', flatten=0, mode='RGB'))
-
-# image2 will be our high pass image
-image2 = np.float64(misc.imread('../images/cat.bmp', flatten=0, mode='RGB'))
-
 def cross_correlate_2d(image, kernel):
     '''
     Like convolution but doesn't involve flipping the kernel.
@@ -103,7 +95,7 @@ def gaussian_blur_kernel_2d(kernel_size, sigma):
 def low_pass(image):
     '''Removes the fine details from an image (blurs) ; will use convolve2d'''
     print("%s") % "We're here in LOW"
-    kernel = gaussian_blur_kernel_2d(11, 5)
+    kernel = gaussian_blur_kernel_2d(5, 5)
     low_pass_image = convolve2d(image, kernel, color=1)
     return low_pass_image
 
@@ -115,10 +107,18 @@ def high_pass(image):
     original = np.copy(image)
     copy = np.copy(image)
     blurred_image = low_pass(copy)
-    alpha = 1
+    alpha = 2
     high_pass_image = alpha * (image - blurred_image)
     return high_pass_image
 
+
+'''Here we begin processing'''
+# read in the images
+# image1 will be our low pass image
+image1 = np.float64(misc.imread('../images/dog.bmp', flatten=0, mode='RGB'))
+
+# image2 will be our high pass image
+image2 = np.float64(misc.imread('../images/cat.bmp', flatten=0, mode='RGB'))
 
 # processing images
 low_passed = low_pass(image1)
@@ -128,9 +128,9 @@ high_passed = high_pass(image2)
 hybrid = low_passed + high_passed
 
 # saving
-misc.imsave("../images/output/testlow.png", low_passed)
-misc.imsave("../images/output/testhigh.png", high_passed)
-misc.imsave("../images/output/testhybrid.png", hybrid)
+misc.imsave("../images/output/low_pass_dog_v2_color.png", low_passed)
+misc.imsave("../images/output/high_pass_cat_v2_color.png", high_passed)
+misc.imsave("../images/output/hybrid_cat_dog_v2_color.png", hybrid)
 
 print("%s" % "Done")
 
