@@ -143,52 +143,75 @@ td img {
 </div>
 
 <p>
-This was definitely one of the more challenging problem sets that was assigned.
-There are several things that still require tuning that I hope to return back to this
-project to complete. <a href="https://github.com/oneyanshi/csc589">Find the Github repository of the code here.</a>
+This was definitely one of the more challenging problem sets that was assigned, but it was a lot of fun!
+ <a href="https://github.com/oneyanshi/csc589">Find the Github repository of the code here.</a>
 Please click on <code>yan_shi_ps3</code> to find the code.
 </p>
-<h2>TODO</h2>
+<h3>TODO</h3>
 <ol>
-<li>Convolve using a separable gaussian filter. Right now, the program runs for quite
+	<li>Convolve using a separable gaussian filter. Right now, the program runs for quite
 	a bit of processing time. Separable filters would fix that.</li>
-<li>Include an applet of some kind on the website! This would require some JavaScrip or a way to
+	<li>Include an applet of some kind on the website! This would require some JavaScrip or a way to
 render python scripts.</li>
 </ol>
-
 <p>The goal of the project was to create and implement my_imfilter.py which involved coding our
-own convolution2d function, a gaussian kernel function, a low pass (blur) function, and a high pass (sharpen) function.
+own cross correlation function, convolution2d function, a gaussian kernel function, a low pass (blur) function, and a high pass (sharpen) function.
 We would then use these functions to create a hybrid image, an image that contains the low-pass frequencies
 of one image and the high-pass frequences of another image. This image is an optical illusion: we are able
 to see the high pass image from up close but unable to see the low pass image until we are far away enough in distance.
-<br/>
-The most difficult part of the setup was the convolution function and the gaussian kernel function. The other
-two functions relied on convolution and the kernel, so those were not challenges. </p>
+This refers to the types of frequencies that we are able to see in certain distances. Lower frequencies can be seen at a farther distance
+and higher frequencies can be seen up front.</p>
+<p>The most difficult part of the setup was the correlation function and the gaussian kernel function. The convolution
+function required the correlation function, and the gaussian kernel function was required throughout the written program. Let's start talking
+about the function.</p>
 
 <div style="clear:both">
 <h2>Functions and Algorithms</h2>
 <p>The functions were given to us and algorithms were based off of the readings in Richard Szeliski's book and in the
 research article <a href="http://cvcl.mit.edu/publications/OlivaTorralb_Hybrid_Siggraph06.pdf">Hybrid Images (Olivia, Torralba, and Schyns)</a>.
-We focus primarily on the standard deeviation of the gaussian filter, &sigma; and alpha for the high-pass function in order to determine
+We focus primarily on the standard deviation of the gaussian filter, &sigma; and alpha for the high-pass function in order to determine
 the best way render the hybridized image. The hybrid image is the <strong>sum</strong> of the high-pass frequencies of one image and the <strong>low-pass</strong>
 frequencies of another image. There was a <strong>cut-off frequency</strong> that we had to keep in mind in order to properly
 hybridize the two images together. <strong>NOTE:</strong> Because of the nature of convolution and the current implementation that I have, the
-runtime for the program itself can reach up to a minute given the size of the images. So please be patient if you are running the program at all.</p>
-<h2>Convolution and Kernels</h2>
-<p>I reviewed convolution and attempted padding. In this case, we added constant padding while we checked through the rows and
-columns. We had a region of interest (the size of the kernel + where the kernel on the image's matrices). These regions of interest
-would then calculate the sum of the region and place that number where the row and column location was in the output. The kernels were
-calculated based on a given sigma; the size of the kernels were determined by primarily the row number of the image itself. We then utilized
-this following piece of code to emulate the Gaussian equation:</p>
-<pre><code>np.exp(-1.0 * ((X - center_x)**2. + (Y-center_y)**2.) / (2. * sigma**2.))</pre></code>
-
+runtime for the program itself can reach up to a minute given the size of the images. So please be patient if you are running the program at all.
+There are print statments dictating where calculations are happening in the program to ensure that things are working peachy!</p>
+<h2>Cross Correlation &amp; Convolution</h2>
+<p>
+<code>cross_correlate_2d(image, kernel)</code> takes the argument of image and kernel. We pad the image using <code>np.pad</code> and then
+we loop through the image from the rows and columns. We determine the window of interest here of the padded image that we would like to
+run the correlations for. We initialize an empty list to take in numbers for the total calculation of the window elements times the kernel elements.
+We then sum the list that we created and put that in the output[i,j] and return the output.</p>
+<p>
+	<code>convolve2d(image, kernel, color)</code> required the above function in order to properly work. There we also determined whether or not the
+	image was to be convolved with three channels, i.e. it is a color image, or just grayscale (two channels, 2D matrix). Here we had to flip the kernel
+	to do convolution—this means that the kernel argument in <code>cross_correlate_2d</code> when passed in is kernel that has been flipped in the x and y
+	direction. If the image is a colored image, then we will split the image's channels and convolve each channel individually before returning the image.
+	Otherwise, it will continue--much of this information can also be found reading the working file.
+</p>
+<h2>Kernel</h2>
+<p>
+	<code>gaussian_blur_kernel_2d(kernel_size, sigma)</code> is needed by all the other functions and was one of the trickier ones to figure out. Here
+	we determine the appropriateness of the <code>kernel_size</code>. I disagreed with allowing arbitrary kernel sizes, as most kernels we'll encounter
+	are usually symmetric in nature. Therefore, our kernels here only reflect a symmetric matrix—which suits our needs perfectly fine. I determined
+	the gaussian kernel to be the following equation:
+	<br/>
+	<pre><code>gmask = np.exp(-((x**2/float(kernel_size) + y**2/float(kernel_size))/(2*sigma**2))</code></pre>
+	<br/>
+	We then also take the <code>gmask</code> and find the average. This function will not allow even kernel sizes as it is difficult to find the center
+	of even kernel sizes. Odd kernel sizes guarantee an easy center find. We can also control sigma here as well, which dictates the strength of
+	blurring.
+</p>
 <h2>High Pass and Low Pass</h2>
-<p><code>high_pass()</code> and <code>low_pass()</code> required one argument each: the image. The functions relied on the <code>convolve2d</code>
-and <code>gaussian_kernel_2d</code> in order for the two to function. It was interesting to try and make it so that the sharpening and blurring
-could be customizable. Sharpening is controlled by alpha, which is stated in the code, and blurring is stated as sigma. </p>
+<p>
+	<code>low_pass(image)</code> and 	<code>high_pass(image)</code> requires the <code>convolve2d()</code> function. The former function
+	requires only the gaussian_blur_kernel_2d() to be convolved properly. The latter function required two copies of the original image
+	in order to be properly manipulated. In order to get a high passed image, we subtract the blurred image from the original image, leaving
+	us with just the sharp bits! We can amplify this sharp bits with <i>alpha</i>.
+</p>
 
 <h2>Results</h2>
-<p>For the first discussion of the results, I will display both the gray scale and color versions of the hybrid images.</p>
+<p>For the first discussion of the results, I will display both the gray scale and color versions of the hybrid images to show
+	that the program can do both. Other images afterwards will be in COLOR. </p>
 <h3>Cat &amp; Dog</h3>
 <h4>Original</h4>
 <table>
@@ -206,7 +229,7 @@ could be customizable. Sharpening is controlled by alpha, which is stated in the
 <img src="images/low/low_pass_doggo_v2.png" width="24%"/>
 <img src="images/high/high_pass_catto_v2.png"  width="24%"/>
 <img src="images/hybrids/hybrid_image_catto_doggo_v2.png" width="24%"/>
-<img src="images/gifs/catto_doggo_color.gif" width="24%">
+<img src="images/gifs/catto_doggo_gray.gif" width="24%">
 </td>
 </tr>
 </table>
@@ -222,8 +245,11 @@ could be customizable. Sharpening is controlled by alpha, which is stated in the
 		</tr>
 </table>
 <p>The high-pass image here was the cat and the low pass iamge was the dog.
-Some notable things: alpha=10 for the <code>high_pass</code> filter and sigma=5 for the <code>low_pass</code> filter. I kept the blurring for
-the high pass to 1. Interestingly enough, I had tried this the other way around, i.e. the high-pass image was now the dog and the low-pass image
+Some notable things: alpha=1 for the <code>high_pass</code> filter and sigma=5 for the <code>low_pass</code> filter. I kept the blurring for
+the high pass to be the same as the low_pass. If I went any higher than 5, I would often start to see
+more artificats and corruption of the image itself—or one image would dominate the other if it was TOO sharp or TOO blurry.
+This was the <strong>frequency cutoff</strong> that was discussed in class. </p>
+<p>I also tried this the other way around, i.e. the high-pass image was now the dog and the low-pass image
 was now the cat.</p>
 <table>
 	<tr>
@@ -234,33 +260,32 @@ was now the cat.</p>
 			</td>
 		</tr>
 </table>
-<table>
-	<tr>
-		<td>
-				<img src="images/low_pass_cat.png" width="24%"/>
-				<img src="images/high_pass_dog.png"  width="24%"/>
-				<img src="images/hybrid_image_doggo_cat.png" width="24%"/>
-			</td>
-		</tr>
-</table>
-<p>... This actually <i>doesn't</i> work, no matter how much you adjust the sigma and alpha. I kept them the same here and
-was unable to achieve a satisfactory result. </p>
+<p>... This doesn't work as well, and it's likely because the cat is such a bright color that it
+overpowers the dog that's more neutral and natural in its tones. There are very little blending effects. </p>
 <h3>Bird &amp; Plane</h3>
+<h4>Originals</h4>
 <table>
 	<tr>
 		<td>
-				<img src="images/low_pass_plane.png" width="24%"/>
-				<img src="images/high_pass_bird.png"  width="24%"/>
-				<img src="images/hybrid_image_bird_or_plane.png" width="24%"/>
-				<img src="images/planebird.gif" width="24%"/>
+			<img src="images/original/bird.bmp" width="35%"/>
+			<img src="images/original/plane.bmp" width="35%"/>
+</table>
+<h4>Hybrid</h4>
+<table>
+	<tr>
+		<td>
+				<img src="images/low/low_pass_bird_v2_color.png" width="35%"/>
+				<img src="images/high/high_pass_plane_v2_color.png"  width="35%"/>
+				<img src="images/hybrids/hybrid_plane_bird_v2_color.png" width="35%"/>
+				<img src="images/gifs/bird_plane.gif" width="35%"/>
 			</td>
 		</tr>
 </table>
-<p>This didn't work as nicely as the cat and dog one, but the idea is similar here. The high pass image was the bird and the
-	low pass image was the plane. The sigma was kept at 5 and the alpha was kept at a 10. The conditions were kept the same from
-	the last hybridization.</p>
-
-<h3>Marilyn &amp; Einstein</h3>
+<p>The settings from prior were kept the same throughout the images, excepet for next one and
+	the bicycle and motorcycle one.
+</p>
+<br/>
+<h3>Marilyn Monroe &amp; Albert Einstein</h3>
 <h4>Original</h4>
 <table>
 	<tr>
@@ -277,15 +302,15 @@ was unable to achieve a satisfactory result. </p>
 				<img src="images/low/low_pass_marilyn_v2_color.png" width="24%"/>
 				<img src="images/high/high_pass_einstein_v2_color.png"  width="24%"/>
 				<img src="images/hybrids/hybrid_einstein_marilyn_v2_color.png" width="24%"/>
-				<img src="images/einsteimarilyn.gif" width="24%"/>
+				<img src="images/gifs/marilyn_einstein.gif" width="24%"/>
 			</td>
 		</tr>
 </table>
-<p>This one was more of a success than others! The high pass image was Albert Einstein and the low-pass image is Marilyn Monroe.
-The alpha for the high-pass image was 5 and the low-pass image's sigma was set to 5 as well. The sigma in the blurring process for
-the sharpening was set to 1. It's interesting as these two required the same alpha and sigma, versus the other two that required at least
-half of each other.</p>
-
+<p>Not quite perfect, but it is definitely a successful hybridization of images. The blurred
+effect of Marilyn Monroe had to be downgraded, as well as the sharpness of Albert Einstein as both
+of the original images have very intense values. Being cognizant of these values, I made sure to fiddle
+around the settings to create a satisfactory image. </p>
+<br/>
 <h3>Fish &amp; Submarine</h3>
 <h4>Original</h4>
 <table>
@@ -296,13 +321,23 @@ half of each other.</p>
 		</td>
 	</tr>
 </table>
+<h4>Hybrid</h4>
 <table>
-<img src="images/low/low_pass_marilyn_v2_color.png" width="24%"/>
-<img src="images/high/high_pass_einstein_v2_color.png"  width="24%"/>
-<img src="images/hybrids/hybrid_einstein_marilyn_v2_color.png" width="24%"/>
-<img src="images/einsteimarilyn.gif" width="24%"/>
+<img src="images/low/low_pass_sub_v2_color.png" width="24%"/>
+<img src="images/high/high_pass_fish_v2_color.png"  width="24%"/>
+<img src="images/hybrids/hybrid_fish_sub_v2_color.png" width="24%"/>
+<img src="images/gifs/fish_sub.gif" width="24%"/>
 </table>
-
+<p>What this specifically taught me was that the colors of images definitely do matter. Take a look at the
+reverse below.</p>
+<table>
+<img src="images/low/low_pass_fish_v2_color.png" width="24%"/>
+<img src="images/high/high_pass_sub_v2_color.png"  width="24%"/>
+<img src="images/hybrids/hybrid_sub_fish_v2_color.png" width="24%"/>
+</table>
+<p>See how this doesn't work as well? It's likely because the color of the fish is much brighter than the blue of the
+submarine. Hence, doing it the other way around makes for the most convincing illusion.</p>
+<br/>
 <h3>Motorcycle &amp; Bicycle</h3>
 <h4>Original</h4>
 <table>
@@ -313,25 +348,90 @@ half of each other.</p>
 		</td>
 	</tr>
 </table>
+<h4>Hybrid</h4>
 <table>
-
+	<tr>
+		<td>
+		<img src="images/low/low_pass_motorcycle_v2_color.png" width="35%"/>
+		<img src="images/high/high_pass_bike_v2_color.png"  width="35%"/>
+		<img src="images/hybrids/hybrid_bike_motorcycle_v2_color.png" width="35%"/>
+		<img src="images/gifs/bike_motor.gif" width="35%"/>
+	</td>
+</tr>
 </table>
-
-<h3>For Fun</h3>
+<p>As discussed in the paper, because of the brightness of the biccle and the nature of the motorcycle, it is often helpful to
+make one grayscale and act as a shadow than to have two colored images overlayed on top of each other. I couldn't figure out
+how to convolve only two channels of the bicycle's high_pass, so I turned it into a grayscael image overall. This still looks
+pretty convincing, though I would've liked to have kept the color.</p>
+<br/>
+<h3>For Fun: Emotions</h3>
+<h4>Original</h4>
+<table>
+	<tr>
+		<td>
+			<img src="images/original/puffycheeks.jpg" width="35%"/>
+			<img src="images/original/nonpuff.jpg" width="35%"/>
+		</td>
+	</tr>
+</table>
+<h4>Hybrid</h4>
+<table>
+	<tr>
+		<td>
+		<img src="images/low/low_pass_nonpuffs_v2_color.png" width="35%"/>
+		<img src="images/high/high_pass_puffycheeks_v2_color.png"  width="35%"/>
+		<img src="images/hybrids/hybrid_puffycheeks_nonpuffs_v2_color.png" width="35%"/>
+		<img src="images/gifs/puffycheeks.gif" width="35%"/>
+	</td>
+</tr>
+</table>
+<p>And... of course... there were some pretty creepy looking failures.</p>
+<h4>Happy or grumpy or just scary?</h4>
+<table>
+	<tr>
+		<td>
+		<img src="images/low/low_pass_happy_v2_color.png" width="24%"/>
+		<img src="images/high/high_pass_grump_v2_color.png"  width="24%"/>
+		<img src="images/hybrids/hybrid_grump_happy_v2_color.png" width="24%"/>
+	</td>
+</tr>
+</table>
+<br/>
+<h4><i>"&amp;:Ghosts</i>", made with Python and a lot of math</h4>
+<table>
+	<tr>
+		<td>
+		<img src="images/low/low_pass_lookaway_v2_color.png" width="29%"/>
+		<img src="images/high/high_pass_neutral_v2_color.png"  width="29%"/>
+		<img src="images/hybrids/hybrid_neutral_lookaway_v2_color.png" width="29%"/>
+	</td>
+</tr>
+</table>
+<table>
+	<tr>
+		<td>
+		<img src="images/low/low_pass_neutral_v2_color.png" width="29%"/>
+		<img src="images/high/high_pass_lookaway_v2_color.png"  width="29%"/>
+		<img src="images/hybrids/hybrid_lookaway_neutral_v2_color.png" width="29%"/>
+	</td>
+</tr>
+</table>
+<p>This goes to show that you shouldn't use pictures that involve in the slighest bit of movement. Also,
+	I recommend pulling these images into a new tab or saving them to zoom in and out on your own!</p>
 
 <div style="clear:both">
 	<h2> Final Thoughts</h2>
-	<p>This was, overall, a successful and fun project. However, with more time, I can definitely finess the project
-and meet the other criteria marks. Unfortunately, with current time constraints, I was unable to get to allow for color
-and allowing for an arbitrary kernel. Nonetheless, the results and experimentation that I discovered along the way gives me
-insight for a better iteration of this project in the near future.</p>
-<p>Overall, it appeared to be that the frequency cut off for most things was from about 5-10. Anything higher would cause the
-images to look out of sync and unnatural. There could not be <strong>too</strong> much sharpening or blurring or else one would
-dominate the other. The striking of balance was necessary and that meant fiddling around with the sigma and the alpha to determine
-what worked best. If I had to do this again, I think I would rather work in the Fourier space than the spatial space, as the spatial
-space doesn't allow for that dramatic of a change in terms of sharpening—as that was my biggest issue.</p>
-
-<p>Thank you for reading!</p>
+	<p>This was, overall, a successful and fun project. However, with more time, I can definitely finess the project and the code
+		to be more efficient with its calculations. I took a bit of leeway with some of the criteria, but I feel as if I have justified my stance.
+		Nonetheless, the results and experimentation that I discovered along the way gives me insight for a better iteration of this project in
+		the near future as a possible web application—this coulde be fun!</p>
+	<p>Overall, it appeared to be that the frequency cut off for most things was from about 5-7,8. Anything higher would cause the
+		images to look out of sync and unnatural. There could not be <strong>too</strong> much sharpening or blurring or else one would
+		dominate the other. The striking of balance was necessary and that meant fiddling around with the sigma and the alpha to determine
+		what worked best. If I had to do this again, I think I would rather work in the Fourier space than the spatial space, as the spatial
+		space doesn't allow for that dramatic of a change in terms of sharpening—as that was my biggest issue. Nonetheless, overall, I had a great
+	if not stressful time with this assignment.</p>
+	<p>Thank you for reading!</p>
 </div>
 </body>
 </html>
