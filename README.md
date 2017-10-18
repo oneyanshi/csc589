@@ -15,5 +15,5 @@ equalization, an amateur edge detection sobel filter, separable filters, and so 
 This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
 to create hybrid images.
 
-![Hybrid image of cat and dog](csc589/yan_shi_ps3/images/output/hybrid_image_catto_doggo_v2_color.png)
+![Hybrid image of cat and dog](/yan_shi_ps3/images/output/hybrid_image_catto_doggo_v2_color.png)
 Format: ![Alt Text](url)
