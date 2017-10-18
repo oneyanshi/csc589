@@ -13,7 +13,6 @@ equalization, an amateur edge detection sobel filter, separable filters, and so 
 
 ## Problem Set 3 / Project 1
 This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
-to create hybrid images.
+to create hybrid images. Check out the example at the bottom: 
 
 ![Hybrid image of cat and dog](/yan_shi_ps3/images/output/hybrid_image_catto_doggo_v2_color.png)
-Format: ![Alt Text](url)
