@@ -16,6 +16,7 @@ This project involved creating convlution functions, gaussian kernels, and high/
 to create hybrid images. Check out the example at the bottom: 
 
 ![Hybrid image of cat and dog](/yan_shi_ps3/images/output/hybrid_image_catto_doggo_v2_color.png)
+![Hybrid image of fish and submarine](yan_shi_ps3/images/output/hybrid_fish_sub_v2_color.png)
 
 ## Problem Set 4 / Project 2
 This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
