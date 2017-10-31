@@ -1,0 +1,431 @@
+<html>
+<head>
+<title>CSC 589 Project 4 | Yan Shi </title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: uppercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Yan Shi <span style="color: #DE3737"></span></h1>
+</div>
+</div>
+<div class="container">
+<h2>CSC 589 AU / Homework 4 / Image Blending Using Pyramids</h2>
+
+<div style="float: right; padding: 10px">
+<img src="../data/site_images/pyramid.png" />
+<p style="font-size: 14px">
+	Courtesy of 
+	<a href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">Wikipedia.</a>
+</p>
+</div>
+
+<p>  For Homework 4, I was tasked to display and create the Laplacian and 
+gaussian pyramids. What are these pyramids, and why should we even care 
+about them? Simply put, people are able to properly understand certain parts 
+of an image. Pixels are great for spatial resolution, but it tells us very little information 
+about the frequency. However, Fourier transforms, on the other hand, are great for 
+frequency access but not for spatial info. Pyramids are the balance between frequency 
+and spatial information. </p>
+
+<p>We find these pyramids by subsampling the image by a rate of 2, a generally accepted 
+and used rate, up or down. However, before we do this, we would blur the image and then subsample, to avoid 
+aliasing. This tosses away a lot of the high frequencies that the images would keep as we subsample.
+Please see the image to the right to get a better idea of how it works. 
+</p>
+<p>But why is this interesting in the first place? Well, that's a fair question! Using these pyramids and
+with a particular formula related to the Laplacian pyramids of two images and the gaussian pyramid of a given mask, 
+we can create more realistic and more interesting ways of blending images together. Hence, we have arrived at the idea of 
+masking. Take a look at the images at the bottom. </p>
+<table>
+		<tr>
+		<td>
+		<img src="../data/apple.jpg" width="24%"/>
+		<img src="../data/orange.jpg"  width="24%"/>
+		<img src="../data/output/amateur_blend.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>This is a very amateur way of blending two images together: taking the half of one image and the half of another 
+and putting them together. As you can see, it's easy to fall out of the illusion that this is a strange hybrid of an 
+apple and an orange when you can clearly see the line in the middle. The method that will be discussed will resolve this. 
+To see the code related to this project, direct yourself to the <a href="">Github repository</a>.
+</p>
+<p>To begin, let's talk about the functions and the algorithms associated with the functions.</p>
+
+<h2>Interpolation</h2>
+<p>Interpolation, as it is explained in the code, enlarges the image with an upsampling rate of r = 2. 
+The image's width and length are doubled, which means that the area is quadrupled. This will primarily be used 
+in the creation of the Laplacian pyramids, which rely on gaussian pyramids. This is further explained in the section 
+below that discusses the construction of pyramids in depth. 
+</p>
+<pre><code>
+	def interpolate(image):
+		"""
+		interpolates an image with upsampling rate, r = 2 
+		"""
+		image_up = np.zeros((2*image.shape[0], 2*image.shape[1]))
+		# upsample 
+		image_up[::2, ::2] = image[:,:]
+		# blur (we need to scale this up since kernel has unit area)
+		# the length and width are doubled, so the area is quadrupled 
+	
+		return (4 * (ndimage.filters.convolve(image_up, kernel, mode='constant')))</code></pre>
+
+<h2>Decimation</h2>
+<p>As it is explained in the <code>decimate</code> function, decimation reduces the 
+image by a downsampling rate of 2. This will primarily be used by the function that creates 
+the gaussian pyramid.</p>
+<pre><code>
+	def decimate(image): 
+		""" 
+		decimates an image with downsampling rate, r = 2
+		""" 
+		# downsample 
+		image_blur = ndimage.filters.convolve(image, kernel, mode='constant')
+	
+		return image_blur[::2, ::2]
+	
+	</code></pre>
+
+<h2>Construction of Pyramids</h2>
+<p>In order to construct pyramids, we need a filter--for this homework assignment, we are using 
+the filter that was provided by Professor Xiao, a binomial 5-tap filter. Refer to the code for more 
+information.</p>
+<p>
+To build the gaussian pyramid, we blur and then subsample the image before decimating the image by about 1/2. 
+As stated previously, the Laplacian pyramid is reliant on the gaussian pyramids. In order to find the levels of 
+the Laplacian pyramid, we find the difference that is formed between that specific level in the gaussian pyramid 
+and expanded version of its upper level in that pyramid. This refers this line in the code: 
+<pre><code>LaplacianPyramid.append(GaussianPyramid[i] - interpolate(GaussianPyramid[i + 1]))</code></pre>
+</p>
+<p>The full function appears like this, which finds both the Laplacian and gaussian pyramids and returns 
+the results: </p>
+<pre><code>
+	def pyramids(image): 
+		""" 
+		constructs Gaussian and Laplacian pyrmaids 
+		parameters: 
+			image: the original image (the base of the pyrmaid)
+		returns: 
+			GaussianPyramid: the gaussian pyrmaid 
+			LaplacianPyramid: the Laplacian pyrmaid 
+		""" 
+		GaussianPyramid = [image, ]
+		LaplacianPyramid = []
+
+		# build the gaussian pyrmaid 
+		while image.shape[0] >= 2 and image.shape[1] >= 2: 
+			image = decimate(image)
+			GaussianPyramid.append(image)
+		
+		# build the Laplacian pyramid
+		for i in range(len(GaussianPyramid)-1): 
+			# Laplacian pyramids are found using the lvl of one gaussian level and 
+			# the level of the next one 
+			LaplacianPyramid.append(GaussianPyramid[i] - interpolate(GaussianPyramid[i + 1]))
+
+		return GaussianPyramid[:-1], LaplacianPyramid</code></pre>
+<h2>The Pyramids</h2>
+<p>In this section, we will now discuss the pyramids themselves. In the discussion of the gaussian and Laplacian 
+	pyramids, it is easier to see the effects of these items in grayscale rather than in color, as it is easier to 
+	note the details in each. I've increased the brightness of the Laplacian pyramids in order to better see the details 
+	by about 30% for the apple image and 60% for the orange image.
+</p>
+<h3> The Gausisan Pyramid (left) and the Laplacian Pyramid (right) of the Apple</h3>
+<img src="../data/output/apple_gauss_pyramid.png" width="450"/> 
+<img src="../data/output/apple_laplacian_pyramid_30.png" width="450"/>
+<h3> The Gausisan Pyramid (left) and the Laplacian Pyramid (right) of the Orange</h3>
+<img src="../data/output/orange_gauss_pyramid.png" width="450"/> 
+<img src="../data/output/orange_laplacian_pyramid_30.png" width="450"/>
+<p> </p>
+
+<h2>Blending</h2>
+<p>The following is the blending function. Using the equation that is stated below, we are able to successfully 
+blend the two images in question. </p>
+<pre><code>
+	def blending(laplacian_pyramid_1, laplacian_pyramid_2, gauss_pyramid_mask):
+		""" 
+		LS(i,j) = GR(I,j,)*LA(I,j) + (1-GR(I,j))*LB(I,j)
+		"""
+		blend_pyramid = []
+		for i in range(0, len(laplacian_pyramid_1)):
+			# first half of the equation 
+			first_half = (gauss_pyramid_mask[i] * laplacian_pyramid_1[i])
+	
+			# second half of the equation 
+			second_half = ((1-gauss_pyramid_mask[i]) * (laplacian_pyramid_2[i]))
+	
+			# append the first + second to blend_pyrmaid 
+			blend_pyramid.append(first_half + second_half)
+	
+		return blend_pyramid</code></pre>
+	<p></p>
+<h2>Results</h2>
+<h3>Successes</h3>
+<h4>Apples &amp; Oranges</h4>
+<p>Let's take a look at the apple and the orange image again. Using this method to blend images, we have the 
+following result: </p>
+<table>
+		<tr>
+		<td>
+		<img src="../data/apple.jpg" width="24%"/>
+		<img src="../data/orange.jpg"  width="24%"/>
+		<img src="../data/mask.jpg" width="24%"/>
+		<img src="../data/output/blend_appleorange_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>This worked out pretty well! You can no longer see / tell where the apple begins and where the orange meets. 
+	Because the environment that these images existed in were the same, the blended image is very believable. The 
+	mask, obviously, supresses one and takes the 'white' side as what will be masked on the apple image. 
+</p>
+<h4>Sunflowers &amp; Godfrey Gao</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/gao.jpg" width="24%"/>
+		<img src="../data/sun_flower3.jpg"  width="24%"/>
+		<img src="../data/gao_mask.jpg" width="24%"/>
+		<img src="../data/output/blend_gaoflower_part2_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>
+Despite some of the shortcomings with this image, I do believe that this is a success. This, as I discuss in 
+the failure section (as I had an iteration before this), required a lot of finessing to work properly. The 
+end result is sweet and cute and showcases my admiration for <a href="https://en.wikipedia.org/wiki/Godfrey_Gao">actor Godfrey Gao</a>.
+The image at the end of this page shows a cropped version of this blended image. The basis for my mask was 
+Godfrey Gao. 
+</p>
+<h4>Pandas &amp; Eagles</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/panda.jpg" width="24%"/>
+		<img src="../data/eagle.jpg"  width="24%"/>
+		<img src="../data/panda_mask.jpg" width="24%"/>
+		<img src="../data/output/blend_eaglepanda_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>
+This worked surprisingly well! I didn't think it would work the way that it did, but the panda's fluffiness
+and the eagle's featheriness worked to create an interesting illusion. It runs a bit in the uncanny valley, 
+where you can't quite tell <em>what</em> is so different about the panda. I used the panda as the basis for 
+my mask in this case. 
+</p>
+<h4>Hands &amp; Eyes &amp; Tongues?</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/hands.jpg" width="24%"/>
+		<img src="../data/einstein_tongue.jpg"  width="24%"/>
+		<img src="../data/einstein_tongue_mask.jpg" width="24%"/>
+		<img src="../data/output/blend_hand_eyes_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<table>
+		<tr>
+		<td>
+		<img src="../data/hands.jpg" width="24%"/>
+		<img src="../data/einstein_tongue_original.jpg"  width="24%"/>
+		<img src="../data/einstein_tongue_face_mask.jpg" width="24%"/>
+		<img src="../data/output/blend_hand_eyes_face_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>To be frank, I have a hard time looking at these without feeling unnerved. However, I wanted to 
+try my hand at a bit of horror and consider both of these iterations successes. I had to crop Einstein's photo
+a bit to allow for the eyes to be on a lower level to rest somewhat on the inside of the hand. I decided to 
+grayscale the hand image as the Einstein image was on a grayscale level already.
+</p>
+<p>The tongue and mustache was largely for fun and to see what it would look like, but isn't it a bit neat looking?</p>
+<h3>Failures</h3>
+<h4>Oops, missed.</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/gao.jpg" width="24%"/>
+		<img src="../data/sunflower.jpg"  width="24%"/>
+		<img src="../data/gao_mask_1.jpg" width="24%"/>
+		<img src="../data/output/blend_gaoflower_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>Above, there is a successful blending of these two images. However, this was only the case after I had 
+		moved the sunflower just enough to allow for Godfrey Gao's head to sit in the middle of the flower. There 
+		was a lot of need to readjust in my image editor in order for the mask to properly work. 
+
+</p>
+<h4>A bad match.</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/cat.jpg" width="24%"/>
+		<img src="../data/dog.jpg"  width="24%"/>
+		<img src="../data/dogcatmask.png" width="24%"/>
+		<img src="../data/output/blend_dogcat_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>This blend of a dog and cat was a failure--with an adjustment of the mask, perhaps it could have been better.
+		Regardless, the features don't line up really well and the grass is a bit offputting. 
+		</p>
+<h4>Fly... Panda?</h4>
+<table>
+		<tr>
+		<td>
+		<img src="../data/panda.jpg" width="24%"/>
+		<img src="../data/eagle.jpg"  width="24%"/>
+		<img src="../data/eagle_mask.jpg" width="24%"/>
+		<img src="../data/output/blend_pandaeagle_image.png" width="24%"/>
+		</td>
+		</tr>
+</table>
+<p>This blend is much like the first one, where the match was not very good nor believable. 
+		</p>
+<div style="clear:both" >
+		<h2>Thoughts &amp; Conclusions</h2>
+	<div style="float: left; padding: 5px">
+			<img src="../data/output/blend_gaoflower_part2_image_crop_cute.png" width="75%">
+		</div>
+<p>There is <strong>one</strong> thing that I would change, and that is making sure that the input images 
+could be of different dimensions that are not strictly 512 px by 512 px. Figuring out that the algorithm that 
+I have implemented didn't allow for different depths. Otherwise, this was a fun project! The algorithms that were
+discussed in class were straightforward and fairly easy to implement, and the steps to do each part of the project 
+were pretty clear. </p>
+<p>Other things to note, I believe this algorithm begins to fail for images that require opacity/transparency 
+	of some kind to fully work. It requires a bit of finessing with the mask to properly execute the blend. This 
+	algorithm fails in the area of precision or when values are too intense / not quite the same. Images need to 
+	be the same size in order for this algorithm to work -- this includes the mask, too. 
+</p>
+<br/>
+</div>
+</body>
+</html>
