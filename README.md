@@ -8,19 +8,17 @@ This problem set focuses on exploring the various capabilities of the libraries 
 the semester, as well as to gain an understanding of matrices arithmetic.
 
 ## Problem Set 2
-This problem set challenged me to think a bit outside the box. Here you will find examples of histogram
-equalization, an amateur edge detection sobel filter, separable filters, and so on.
+This problem set challenged me to think a bit outside the box. Here you will find examples of histogram equalization, an amateur edge detection sobel filter, separable filters, and so on.
 
 ## Problem Set 3 / Project 1
-This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
-to create hybrid images. Check out the example at the bottom: 
+This project involved creating convlution functions, gaussian kernels, and high/low-pass functions to create hybrid images. 
 
 ![Hybrid image of cat and dog](/yan_shi_ps3/images/output/hybrid_image_catto_doggo_v2_color.png)
 ![Hybrid image of fish and submarine](yan_shi_ps3/images/output/hybrid_fish_sub_v2_color.png)
 
 ## Problem Set 4 / Project 2
-This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
-to create hybrid images. Check out the example at the bottom: 
+This project involved creating Gaussian and Laplacian pyramids and utilizing 
+an algorithm/theorem to blend the images together. 
 
 ![Blended Orange & Apple](/yan_shi_ps4/data/output/image1_project2.png)
 ![Blended Panda Eagle](/yan_shi_ps4/data/output/image2_project2.png)
