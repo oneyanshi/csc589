@@ -21,5 +21,5 @@ to create hybrid images. Check out the example at the bottom:
 This project involved creating convlution functions, gaussian kernels, and high/low-pass functions
 to create hybrid images. Check out the example at the bottom: 
 
-![Blended Orange & Apple](/yan_shi_ps4/images/data/output/image1_project2.png)
-![Blended Panda Eagle](/yan_shi_ps4/images/data/output/image2_project2.png)
+![Blended Orange & Apple](/yan_shi_ps4/data/output/image1_project2.png)
+![Blended Panda Eagle](/yan_shi_ps4/data/output/image2_project2.png)
